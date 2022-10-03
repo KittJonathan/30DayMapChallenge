@@ -8,14 +8,25 @@
 library(tidyverse)
 library(geojsonio)
 library(jsonlite)
+library(sp)
+library(broom)
 
 # Extract data ----
 
 # https://github.com/fraxen/tectonicplates
 # https://r-graph-gallery.com/325-background-map-from-geojson-format-in-r.html
 
-d1 <- jsonlite::read_json(path = "https://raw.githubusercontent.com/fraxen/tectonicplates/master/GeoJSON/PB2002_boundaries.json") |> 
-  sf()
+d1 <- geojsonio::geojson_read("https://raw.githubusercontent.com/fraxen/tectonicplates/master/GeoJSON/PB2002_boundaries.json", what = "sp")
+
+test <- d1[d1@data$Name == "CA-NA", ]
+
+d2 <- tidy(d1)
+
+ggplot() +
+  geom_line(data = d2, aes( x = long, y = lat, group = group), color="white") +
+  theme_void() +
+  coord_map()
+
 
 url <- "https://fr.wikipedia.org/wiki/Point_chaud_(géologie)"
 
