@@ -6,8 +6,16 @@
 # Load packages ----
 
 library(tidyverse)
+library(geojsonio)
+library(jsonlite)
 
 # Extract data ----
+
+# https://github.com/fraxen/tectonicplates
+# https://r-graph-gallery.com/325-background-map-from-geojson-format-in-r.html
+
+d1 <- jsonlite::read_json(path = "https://raw.githubusercontent.com/fraxen/tectonicplates/master/GeoJSON/PB2002_boundaries.json") |> 
+  sf()
 
 url <- "https://fr.wikipedia.org/wiki/Point_chaud_(géologie)"
 
