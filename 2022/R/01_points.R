@@ -24,6 +24,18 @@ rm(tables, url, webpage)
 
 hotspots_clean <- hotspots |> 
   janitor::clean_names() |> 
-  dplyr::select(nom, plaque, position)
+  dplyr::select(nom, plaque, position) |> 
+  dplyr::filter(!is.na(position)) |> 
+  tidyr::separate(position, into = c("lat", "long"), sep = ",") |> 
+  dplyr::mutate(long = str_replace_all(long, "\\[.+?\\]", "")) |> 
+  dplyr::mutate(long = str_replace_all(long, "O", "W")) |> 
+  dplyr::mutate(lat_2 = parzer::parse_lat(lat),
+                long_2 = parzer::parse_lon(long))
 
 hotspots_clean
+
+# Create map ----
+
+ggplot(hotspots_clean,
+       aes(x = long_2, y = lat_2)) +
+  geom_point()
