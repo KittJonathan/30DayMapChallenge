@@ -36,6 +36,19 @@ hotspots_clean
 
 # Create map ----
 
+world <- map_data("world")
+# %>% 
+  # filter(region != "Antarctica")
+
+ggplot() +
+  geom_polygon(data = world,
+               aes(x = long, y = lat, group = group),
+               colour = "#1b1d46", fill = "#1b1d46") +
+  geom_point(data = hotspots_clean,
+             aes(x = long_2, y = lat_2),
+             colour = "red") +
+  coord_fixed(1.3)
+
 ggplot(hotspots_clean,
        aes(x = long_2, y = lat_2)) +
   geom_point()
