@@ -19,3 +19,11 @@ tables <- rvest::html_nodes(webpage, "table.wikitable") %>%
 hotspots <- tables[[1]]
 
 rm(tables, url, webpage)
+
+# Clean data ----
+
+hotspots_clean <- hotspots |> 
+  janitor::clean_names() |> 
+  dplyr::select(nom, plaque, position)
+
+hotspots_clean
