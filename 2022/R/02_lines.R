@@ -16,58 +16,67 @@ library(broom)
 # https://github.com/fraxen/tectonicplates
 # https://r-graph-gallery.com/325-background-map-from-geojson-format-in-r.html
 
-d1 <- geojsonio::geojson_read("https://raw.githubusercontent.com/fraxen/tectonicplates/master/GeoJSON/PB2002_boundaries.json", what = "sp")
+# d1 <- geojsonio::geojson_read("https://raw.githubusercontent.com/fraxen/tectonicplates/master/GeoJSON/PB2002_boundaries.json", what = "sp")
+plates <- geojsonio::geojson_read("https://raw.githubusercontent.com/fraxen/tectonicplates/master/GeoJSON/PB2002_plates.json", what = "sp")
 
-test <- d1[d1@data$Name == "CA-NA", ]
+# tidy_plates <- tidy(plates)
 
-d2 <- tidy(d1)
+# africa <- tidy(plates[plates@data$PlateName == "Africa", ])
 
-ggplot() +
-  geom_line(data = d2, aes( x = long, y = lat, group = group), color="white") +
-  theme_void() +
-  coord_map()
+# test <- d1[d1@data$Name == "CA-NA", ]
 
+# subduction <- d1[d1@data$Type == "subduction", ]
+# sub_tidy <- tidy(subduction)
 
-url <- "https://fr.wikipedia.org/wiki/Point_chaud_(géologie)"
+# d2 <- tidy(d1)
 
-webpage <- rvest::read_html(url)
+# tect <- d1[d1@data$Type != "subduction", ]
+# tect_tidy <- tidy(tect)
 
-tables <- rvest::html_nodes(webpage, "table.wikitable") %>%
-  rvest::html_table(header = TRUE, na.strings = c(NA, ""), convert = TRUE)
+# bird <- d1[d1@data$Source == "Peter Bird, June 2002", ]
+# bird_tidy <- tidy(bird)
 
-hotspots <- tables[[1]]
-
-rm(tables, url, webpage)
-
-# Clean data ----
-
-hotspots_clean <- hotspots |> 
-  janitor::clean_names() |> 
-  dplyr::select(nom, plaque, position) |> 
-  dplyr::filter(!is.na(position)) |> 
-  tidyr::separate(position, into = c("lat", "long"), sep = ",") |> 
-  dplyr::mutate(long = str_replace_all(long, "\\[.+?\\]", "")) |> 
-  dplyr::mutate(long = str_replace_all(long, "O", "W")) |> 
-  dplyr::mutate(lat_2 = parzer::parse_lat(lat),
-                long_2 = parzer::parse_lon(long))
-
-hotspots_clean
-
-# Create map ----
+# eu_af <- tidy(d1[d1@data$Name %in% c("EU-AF", "EU\\AF", "EU/AF", "NA-AF"), ])
 
 world <- map_data("world")
-# %>% 
-  # filter(region != "Antarctica")
+
+plates_list <- sort(unique(plates@data$PlateName))
+
+plates_tidy <- tidy(plates)
 
 ggplot() +
   geom_polygon(data = world,
                aes(x = long, y = lat, group = group),
                colour = "#1b1d46", fill = "#1b1d46") +
-  geom_point(data = hotspots_clean,
-             aes(x = long_2, y = lat_2),
-             colour = "red") +
-  coord_fixed(1.3)
+  geom_polygon(data = tidy(plates[plates@data$PlateName == plates_list[8], ]),
+               aes(x = long, y = lat, group = group),
+               colour = "red", fill = NA, size = 2)
 
-ggplot(hotspots_clean,
-       aes(x = long_2, y = lat_2)) +
-  geom_point()
+ggplot() +
+  geom_polygon(data = world,
+               aes(x = long, y = lat, group = group),
+               colour = "#1b1d46", fill = "#1b1d46") +
+  geom_polygon(data = tidy(plates[plates@data$PlateName ==  "Antarctica", ]),
+               aes(x = long, y = lat, group = group),
+               colour = "red", fill = NA, size = 1, alpha = 0.5) +
+  coord_map("ortho", orientation = c(-90, 0, 0))
+
+
+  geom_polygon(data = tidy(plates[plates@data$PlateName %in% c("Africa", "Antarctica", "Nazca",
+                                                               "South America"), ]),
+               aes(x = long, y = lat, group = group),
+               colour = "red", fill = "red", size = 1, alpha = 0.5)
+
+ggplot() +
+  geom_polygon(data = world,
+               aes(x = long, y = lat, group = group),
+               colour = "#1b1d46", fill = "#1b1d46") +
+  geom_polygon(data = tidy_plates, aes( x = long, y = lat, group = group), color = "red", size = 1, fill = NA) 
+
+
+ggplot() +
+  geom_line(data = tect_tidy, aes( x = long, y = lat, group = group), color = "white", fill = NA) +
+  # theme_void() +
+  coord_map()
+
+
