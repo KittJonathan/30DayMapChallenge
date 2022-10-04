@@ -5,6 +5,7 @@
 
 # Load packages ----
 
+library(parzer)
 library(tidyverse)
 
 # Extract data ----
@@ -48,7 +49,3 @@ ggplot() +
              aes(x = long_2, y = lat_2),
              colour = "red") +
   coord_fixed(1.3)
-
-ggplot(hotspots_clean,
-       aes(x = long_2, y = lat_2)) +
-  geom_point()
