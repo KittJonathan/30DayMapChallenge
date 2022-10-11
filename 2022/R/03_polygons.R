@@ -5,12 +5,18 @@
 
 # Load packages ----
 
+library(showtext)
 library(tidyverse)
 # library(geojsonio)
 # library(jsonlite)
 # library(sp)
 # library(broom)
 library(osmdata)
+
+# Import fonts ----
+
+font_add_google("Nova Square", "Nova Square")
+showtext_auto()
 
 # Get data ----
 
@@ -19,12 +25,56 @@ fresno_bb <- matrix(data = c(-119.93, -119.89, 36.67, 36.71),
 colnames(fresno_bb) <- c("min", "max")
 rownames(fresno_bb) <- c("x", "y")
 
+reservoir <- opq(bbox = fresno_bb) |> 
+  add_osm_feature(key = "water", value = "reservoir") |> 
+  osmdata_sf()
+
+wastewater_plant <- opq(bbox = fresno_bb) |> 
+  add_osm_feature(key = "man_made", value = "wastewater_plant") |> 
+  osmdata_sf()
+
+p <- ggplot() +
+  geom_sf(data = reservoir$osm_polygons,
+          fill = "#08b3e5", colour = "#08b3e5") +
+  labs(title = "Fresno-Clovis Water Treatment Plant",
+       caption = "#30DayMapChallenge 2022 | 03 - polygons | J.Kitt | Source : OpenStreetMap") +
+  theme_void() +
+  theme(panel.background = element_rect(fill = "#22e4ac", colour = "#22e4ac"),
+        plot.background = element_rect(fill = "#22e4ac", colour = "#22e4ac"),
+        plot.title = element_text(family = "Nova Square", colour = "#223f85",
+                                  size = 100, hjust = 0.5, margin = margin(t = 25, b = 5)),
+        plot.caption = element_text(colour = "#223f85", size = 25, hjust = 0.5,
+                                    margin = margin(b = 10)))
+
+ggsave("2022/maps/03_polygons.png", p, dpi = 320, height = 6, width = 12)
+
+
+
+
+wastewater_plant <- opq(bbox = fresno_bb) |> 
+  add_osm_feature(key = "water", value = "wastewater") |> 
+  osmdata_sf()
+
 d1 <- opq(bbox = fresno_bb) |> 
   add_osm_feature(key = "water") |> 
   osmdata_sf()
 
+d1 <- opq(bbox = fresno_bb) |> 
+  add_osm_feature(key = "water") |> 
+  osmdata_sf()
+
+roads <- opq(bbox = fresno_bb) |> 
+  add_osm_feature(key = "highway") |> 
+  osmdata_sf()
+
+d2 <- opq(bbox = fresno_bb) |> 
+  add_osm_feature(key = "landfill") |> 
+  osmdata_sf()
+
 ggplot() +
-  geom_sf(data = d1$osm_polygons)
+  # geom_sf(data = roads$osm_lines) +
+  geom_sf(data = wastewater_plant$osm_polygons,
+          fill = "blue", colour = "lightblue")
 
 d1
 fresno_bb
