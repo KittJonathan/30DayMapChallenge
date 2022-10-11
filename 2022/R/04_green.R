@@ -14,8 +14,25 @@ library(osmdata)
 
 # Get data ----
 
-scotland <- opq("Scotland") |> 
-  add_osm_feature(key = )
+trossachs_bb <- matrix(data = c(-5.13, -4.05, 55.95, 56.49),
+                    nrow = 2, byrow = TRUE)
+colnames(trossachs_bb) <- c("min", "max")
+rownames(trossachs_bb) <- c("x", "y")
+
+water <- opq(bbox = trossachs_bb) |> 
+  add_osm_feature(key = "natural", value = "water") |> 
+  osmdata_sf()
+
+ggplot() +
+  geom_sf(data = water$osm_polygons)
+
+edinburgh_parks <- opq("Manhattan") |> 
+  add_osm_feature(key = "leisure",
+                  value = "park") |> 
+  osmdata_sf()
+
+ggplot() +
+  geom_sf(data = edinburgh_parks$osm_polygons)
 
 copenhagen <- opq("Copenhagen") |> 
   add_osm_feature(key = "cycleway") |> 
