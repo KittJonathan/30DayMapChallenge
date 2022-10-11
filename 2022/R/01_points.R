@@ -1,12 +1,18 @@
 # 30DayMapChallenge
 # 2022
 # Day 1 : Points
-# Last updated : 2022-10-03
+# Last updated : 2022-10-11
 
 # Load packages ----
 
 library(parzer)
+library(showtext)
 library(tidyverse)
+
+# Import fonts ----
+
+font_add_google(name = "Finger Paint", family = "paint")
+showtext_auto()
 
 # Extract data ----
 
@@ -41,11 +47,25 @@ world <- map_data("world")
 # %>% 
   # filter(region != "Antarctica")
 
-ggplot() +
+(p <- ggplot() +
   geom_polygon(data = world,
                aes(x = long, y = lat, group = group),
-               colour = "#1b1d46", fill = "#1b1d46") +
+               colour = NA, fill = "#efc47e",
+               alpha = 0.5) +
   geom_point(data = hotspots_clean,
              aes(x = long_2, y = lat_2),
-             colour = "red") +
-  coord_fixed(1.3)
+             colour = "#ee4d5a") +
+  coord_fixed(1.3) +
+  labs(title = "Volcanic hot spots",
+       caption = "#30DayMapChallenge 2022 | 01 - points | J.Kitt | Source : Wikipedia") +
+  theme_void() +
+  theme(
+    panel.background = element_rect(fill = "#ecda9a", colour = "#ecda9a"),
+    plot.background = element_rect(fill = "#ecda9a", colour = "#ecda9a"),
+    plot.title = element_text(family = "paint", colour = "#ee4d5a",
+                              size = 75, margin = margin(t = 20)),
+    plot.caption = element_text(colour = "#ee4d5a", size = 25, hjust = 0.5,
+                                margin = margin(b = 10)))
+)
+
+ggsave("2022/maps/01_points.png", p, dpi = 320, height = 6, width = 12)
