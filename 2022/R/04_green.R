@@ -1,7 +1,7 @@
 # 30DayMapChallenge
 # 2022
-# Day 3 : Polygons
-# Last updated : 2022-10-04
+# Day 4 : Green
+# Last updated : 2022-10-11
 
 # Load packages ----
 
@@ -13,6 +13,59 @@ library(tidyverse)
 library(osmdata)
 
 # Get data ----
+
+scotland <- opq("Scotland") |> 
+  add_osm_feature(key = )
+
+copenhagen <- opq("Copenhagen") |> 
+  add_osm_feature(key = "cycleway") |> 
+  osmdata_sf()
+
+edinburgh2 <- opq("Edinburgh") |> 
+  add_osm_feature(key = "highway", value = "cycleway") |> 
+  osmdata_sf()
+
+ggplot() +
+  # geom_sf(data = edinburgh$osm_lines) +
+  geom_sf(data = copenhagen$osm_lines)
+
+edinburgh <- opq("Edinburgh") |> 
+  add_osm_feature(key = "natural",
+                  value = c("fell", "grassland", "heath",
+                            "moor", "scrub", "shrubbery", "tree",
+                            "tree_row", "tundra", "wood")) |>
+  osmdata_sf()
+
+leaf_type <- opq("Edinburgh") |> 
+  add_osm_feature(key = "leaf_type") |> 
+  osmdata_sf()
+
+ggplot() +
+  geom_sf(data = leaf_type$osm_points,
+          colour = leaf_type$osm_points$name)
+
+ggplot() +
+  geom_sf(data = edinburgh$osm_polygons,
+          fill = "green") +
+  geom_sf(data = edinburgh$osm_points,
+          colour = "green", size = 0.25)
+
+oslo_cycleway <- opq("Oslo") |> 
+  add_osm_feature(key = "highway",
+                  value = "cycleway") |>
+  osmdata_sf()
+
+ggplot() +
+  geom_sf(data = oslo_cycleway$osm_lines)
+
+oslo <- opq("Oslo") |> 
+  add_osm_feature(key = "natural") |> 
+  osmdata_sf()
+
+ggplot() +
+  geom_sf(data = oslo$osm_polygons)
+
+
 
 parks <- opq("Edinburgh") |> 
   add_osm_feature(key = "leisure", value = "park") |> 
