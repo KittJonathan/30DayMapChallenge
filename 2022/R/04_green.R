@@ -16,6 +16,12 @@ showtext_auto()
 
 # Get data ----
 
+villandry <- getbb("Villandry") |> 
+  opq() |> 
+  add_osm_feature(key = "leisure",
+                  value = "garden") |> 
+  osmdata_sf()
+
 edin_parks <- getbb("Edinburgh") |> 
   opq() |> 
   add_osm_feature(key = "leisure",
@@ -48,7 +54,7 @@ ligne_C <- lyon$osm_lines |>
 ggplot() +
   # geom_sf(data = edin_parks$osm_polygons, colour = NA, fill = "blue") +
   # geom_sf(data = edin_wood$osm_polygons, colour = NA, fill = "darkgreen") +
-  geom_sf(data = edin_grass$osm_polygons, colour = NA, fill = "darkgreen")
+  geom_sf(data = villandry$osm_polygons, colour = "darkgreen")
 
 evergreen <- getbb("Edinburgh") |> 
   opq() |> 
