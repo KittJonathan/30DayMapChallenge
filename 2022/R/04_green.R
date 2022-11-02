@@ -16,10 +16,30 @@ showtext_auto()
 
 # Get data ----
 
+longleat_bb <- matrix(data = c(-2.28, -2.27, 51.18, 51.19),
+                    nrow = 2, byrow = TRUE)
+colnames(longleat_bb) <- c("min", "max")
+rownames(longleat_bb) <- c("x", "y")
+
+longleat <- opq(bbox = longleat_bb) |> 
+  add_osm_feature(key = "barrier", value = "hedge") |> 
+  osmdata_sf()
+
+xmin 51.1882083673724, -2.278764623645247
+xmax 51.18782170987019, -2.276830750945523
+ymin 51.18744177368181, -2.277678328994222
+ymax 51.188589978338584, -2.2777185621294467
+
+longleat <- getbb("Warminster") |> 
+  opq() |> 
+  add_osm_feature(key = "barrier",
+                  value = "hedge") |> 
+  osmdata_sf()
+
 villandry <- getbb("Villandry") |> 
   opq() |> 
-  add_osm_feature(key = "leisure",
-                  value = "garden") |> 
+  add_osm_feature(key = "barrier",
+                  value = "hedge") |> 
   osmdata_sf()
 
 edin_parks <- getbb("Edinburgh") |> 
@@ -54,7 +74,7 @@ ligne_C <- lyon$osm_lines |>
 ggplot() +
   # geom_sf(data = edin_parks$osm_polygons, colour = NA, fill = "blue") +
   # geom_sf(data = edin_wood$osm_polygons, colour = NA, fill = "darkgreen") +
-  geom_sf(data = villandry$osm_polygons, colour = "darkgreen")
+  geom_sf(data = longleat$osm_polygons, fill = "darkgreen")
 
 evergreen <- getbb("Edinburgh") |> 
   opq() |> 
