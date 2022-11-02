@@ -1,7 +1,7 @@
 # 30DayMapChallenge
 # 2022
 # Day 1 : Points
-# Last updated : 2022-10-11
+# Last updated : 2022-11-01
 
 # Load packages ----
 
@@ -39,18 +39,15 @@ hotspots_clean <- hotspots |>
   dplyr::mutate(lat_2 = parzer::parse_lat(lat),
                 long_2 = parzer::parse_lon(long))
 
-hotspots_clean
-
 # Create map ----
 
 world <- map_data("world")
-# %>% 
-  # filter(region != "Antarctica")
 
 (p <- ggplot() +
   geom_polygon(data = world,
                aes(x = long, y = lat, group = group),
-               colour = NA, fill = "#efc47e",
+               colour = NA,
+               fill = "#999999",
                alpha = 0.5) +
   geom_point(data = hotspots_clean,
              aes(x = long_2, y = lat_2),
@@ -60,12 +57,14 @@ world <- map_data("world")
        caption = "#30DayMapChallenge 2022 | 01 - points | J.Kitt | Source : Wikipedia") +
   theme_void() +
   theme(
-    panel.background = element_rect(fill = "#ecda9a", colour = "#ecda9a"),
-    plot.background = element_rect(fill = "#ecda9a", colour = "#ecda9a"),
+    panel.background = element_rect(fill = "black", colour = "black"),
+    plot.background = element_rect(fill = "black", colour = "black"),
     plot.title = element_text(family = "paint", colour = "#ee4d5a",
                               size = 75, margin = margin(t = 20)),
     plot.caption = element_text(colour = "#ee4d5a", size = 25, hjust = 0.5,
                                 margin = margin(b = 10)))
 )
+
+# Export map ----
 
 ggsave("2022/maps/01_points.png", p, dpi = 320, height = 6, width = 12)
