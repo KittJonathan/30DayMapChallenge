@@ -15,6 +15,17 @@ library(patchwork)
 # font_add_google("Bebas Neue", "bebas")
 # showtext_auto()
 
+# Set coordinates ----
+
+coord <- tibble(
+  name = c("andrassy_castle",
+           "pisani",
+           "longleat",
+           "peace",
+           "marlborough"),
+  long = c(21.174489, 12.013175, -2.277649, -5.953294, -1.349644),
+  lat = c(48.018022, 45.409535, 51.188063, 54.258509, 51.837473))
+
 # Get data ----
 
 andrassy_castle_bb <- matrix(data = c(21.17392, 21.17495, 48.01742, 48.01850),
@@ -45,15 +56,6 @@ longleat_maze <- opq(bbox = longleat_bb) |>
   add_osm_feature(key = "barrier", value = "hedge") |> 
   osmdata_sf()
 
-dole_bb <- matrix(data = c(-158.03805, -158.03658, 21.52404, 21.52588),
-                  nrow = 2, byrow = TRUE)
-colnames(dole_bb) <- c("min", "max")
-rownames(dole_bb) <- c("x", "y")
-
-dole_maze <- opq(bbox = dole_bb) |> 
-  add_osm_feature(key = "barrier", value = "hedge") |> 
-  osmdata_sf()
-
 peace_bb <- matrix(data = c(-5.95423, -5.95219, 54.25781, 54.25910),
                    nrow = 2, byrow = TRUE)
 colnames(peace_bb) <- c("min", "max")
@@ -73,6 +75,20 @@ marlborough_maze <- opq(bbox = marlborough_bb) |>
   osmdata_sf()
 
 # Create maps ----
+
+world <- map_data("world")
+
+loc <- ggplot() +
+  geom_polygon(data = world,
+                 aes(x = long, y = lat, group = group),
+                 colour = NA,
+                 fill = "#999999",
+                 alpha = 0.5) +
+    geom_point(data = coord,
+               aes(x = long, y = lat),
+               colour = "#ee4d5a") +
+  coord_fixed(1.3, xlim = c(-7.5, 25), ylim = c(42, 57.5))
+
 
 m1 <- ggplot() +
   geom_sf(data = andrassy_castle_maze$osm_polygons,
@@ -103,14 +119,6 @@ m3 <- ggplot() +
         plot.background = element_rect(fill = "#4b6043", colour = NA))
 
 m4 <- ggplot() +
-  geom_sf(data = dole_maze$osm_lines,
-          colour = "#95bb72",
-          size = 0.75) +
-  theme_void() +
-  theme(panel.background = element_rect(fill = "#4b6043", colour = NA),
-        plot.background = element_rect(fill = "#4b6043", colour = NA))
-
-m5 <- ggplot() +
   geom_sf(data = peace_maze$osm_lines,
           colour = "#95bb72",
           size = 0.75) +
@@ -118,7 +126,7 @@ m5 <- ggplot() +
   theme(panel.background = element_rect(fill = "#4b6043", colour = NA),
         plot.background = element_rect(fill = "#4b6043", colour = NA))
 
-m6 <- ggplot() +
+m5 <- ggplot() +
   geom_sf(data = marlborough_maze$osm_lines,
           colour = "#95bb72",
           size = 0.75) +
@@ -126,7 +134,7 @@ m6 <- ggplot() +
   theme(panel.background = element_rect(fill = "#4b6043", colour = NA),
         plot.background = element_rect(fill = "#4b6043", colour = NA))
 
-m <- m1 + m2 + m3 + m4 + m5 + m6
+m <- m1 + loc + m2 + m3 + m4 + m5
 m
 
 ggsave("2022/maps/04_green.png", m, dpi = 320, height = 6, width = 12)
