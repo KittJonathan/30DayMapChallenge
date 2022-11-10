@@ -1,19 +1,19 @@
 # 30DayMapChallenge
 # 2022
 # Day 6 : Network
-# Last updated : 2022-10-21
+# Last updated : 2022-11-06
 
 # Load packages ----
 
 library(tidyverse)
 library(osmdata)
+library(sf)
 library(showtext)
 
 # Import fonts ----
 
 font_add_google("Bebas Neue", "bebas")
 showtext_auto()
-
 
 # Get data ----
 
@@ -103,5 +103,7 @@ minor_stations <- data.table::rbindlist(minor_stations)
          plot.caption = element_text(colour = "#cfcfcf", size = 25, hjust = 0.5,
                                      margin = margin(b = 10)))
 )
+
+# Export map ----
 
 ggsave("2022/maps/06_network.png", p, dpi = 320, height = 6, width = 12)
