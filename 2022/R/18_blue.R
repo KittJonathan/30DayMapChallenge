@@ -22,6 +22,12 @@ lochs <- getbb("Scotland") |>
                   value = "lake") |> 
   osmdata_sf()
 
+water <- getbb("Scotland") |> 
+  opq() |> 
+  add_osm_feature(key = "natural",
+                  value = "water") |> 
+  osmdata_sf()
+
 coast <- getbb("Scotland") |> 
   opq() |> 
   add_osm_feature(key = "natural",
@@ -30,25 +36,38 @@ coast <- getbb("Scotland") |>
 
 # Subset data ----
 
+loch_morar <- water$osm_multipolygons |> 
+  filter(name == "Loch Morar")
+
 loch_ness <- lochs$osm_multipolygons |> 
   filter(name == "Loch Ness")
 
 loch_lomond <- lochs$osm_multipolygons |> 
   filter(name == "Loch Lomond")
 
+loch_lomond2 <- water$osm_multipolygons |> 
+  filter(name == "Loch Lomond")
+
 loch_maree <- lochs$osm_multipolygons |> 
   filter(name == "Loch Maree")
+
+loch_tay <- water$osm_multipolygons |> 
+  filter(name == "Loch Tay")
+
+loch_shin <- water$polygons |> 
+  filter(name == "Loch Shin")
 
 # Create map ----
 
 ggplot() +
-  geom_sf(data = loch_maree$geometry)
+  geom_sf(data = loch_shin$geometry)
 
 ggplot() +
   geom_sf(data = coast$osm_lines) +
-  # geom_sf(data = lochs$osm_multipolygons)
+  geom_sf(data = loch_morar$geometry, fill = "red", col = "red") +
   geom_sf(data = loch_ness$geometry, fill = "red", col = "red") +
-  geom_sf(data = loch_lomond$geometry, fill = "red", col = "red")
+  geom_sf(data = loch_lomond$geometry, fill = "red", col = "red") +
+  geom_sf(data = loch_tay$geometry, fill = "red", col = "red")
 
 ggplot() +
   geom_polygon(data = scotland,
