@@ -3,24 +3,44 @@
 # Day 18 : Blue
 # Last updated : 2022-11-17
 
+# URL used ----
+
+# https://stackoverflow.com/questions/58549852/small-multiple-maps-with-geom-sf-at-the-same-spatial-scale
+
 # Load packages ----
 
+library(patchwork)
 library(showtext)
 library(tidyverse)
 library(osmdata)
 
 # Import fonts ----
 
-# font_add_google("MedievalSharp", "medieval")
-# showtext_auto()
+font_add_google("Comfortaa", "comfortaa")
+showtext_auto()
 
-# Get data ----
+# Extract list of deepest lochs ----
 
-lochs <- getbb("Scotland") |> 
-  opq() |> 
-  add_osm_feature(key = "water",
-                  value = "lake") |> 
-  osmdata_sf()
+url <- "https://en.wikipedia.org/wiki/List_of_lochs_of_Scotland"
+
+webpage <- rvest::read_html(url)
+
+tables <- rvest::html_nodes(webpage, "table.wikitable") %>%
+  rvest::html_table(header = TRUE, na.strings = c(NA, ""), convert = TRUE)
+
+lochs_tbl <- tables[[1]]
+
+rm(url, webpage, tables)
+
+# Clean list of deepest lochs ----
+
+lochs_tbl <- lochs_tbl |> 
+  janitor::clean_names() |> 
+  select(loch, max_depth_m) |> 
+  arrange(desc(max_depth_m)) |> 
+  head(3)
+
+# Get OSM data ----
 
 water <- getbb("Scotland") |> 
   opq() |> 
@@ -28,107 +48,80 @@ water <- getbb("Scotland") |>
                   value = "water") |> 
   osmdata_sf()
 
-coast <- getbb("Scotland") |> 
-  opq() |> 
-  add_osm_feature(key = "natural",
-                  value = "coastline") |> 
-  osmdata_sf()
+# Subset OSM data ----
 
-# Subset data ----
+for (i in 1:nrow(lochs_tbl)) {
+  
+  assign(lochs_tbl$loch[i], select(filter(water$osm_multipolygons,
+                                   name == lochs_tbl$loch[i]), "name", "geometry"))
+  
+}
 
-loch_morar <- water$osm_multipolygons |> 
-  filter(name == "Loch Morar")
+# 3 lochs in one table ----
 
-loch_ness <- lochs$osm_multipolygons |> 
-  filter(name == "Loch Ness")
+three_lochs <- do.call(rbind, mget(lochs_tbl$loch))
 
-loch_lomond <- lochs$osm_multipolygons |> 
-  filter(name == "Loch Lomond")
+# Calculate centroids for the 10 lochs and add loch nb ----
 
-loch_lomond2 <- water$osm_multipolygons |> 
-  filter(name == "Loch Lomond")
+three_lochs <- three_lochs |> 
+  mutate(centroid = sf::st_centroid(geometry)) |>
+  left_join(lochs_tbl, by = c("name" = "loch")) |> 
+  mutate(loch_nb = 1:3)
 
-loch_maree <- lochs$osm_multipolygons |> 
-  filter(name == "Loch Maree")
+# Create maps ----
 
-loch_tay <- water$osm_multipolygons |> 
-  filter(name == "Loch Tay")
-
-loch_shin <- water$polygons |> 
-  filter(name == "Loch Shin")
-
-# Create map ----
-
-ggplot() +
-  geom_sf(data = loch_shin$geometry)
-
-ggplot() +
-  geom_sf(data = coast$osm_lines) +
-  geom_sf(data = loch_morar$geometry, fill = "red", col = "red") +
-  geom_sf(data = loch_ness$geometry, fill = "red", col = "red") +
-  geom_sf(data = loch_lomond$geometry, fill = "red", col = "red") +
-  geom_sf(data = loch_tay$geometry, fill = "red", col = "red")
-
-ggplot() +
-  geom_polygon(data = scotland,
-               aes(x = long, y = lat, group = group),
-               colour = NA, fill = "#ffd500") +
-  geom_sf(data = lochs$osm_multipolygons)
-
-lochs <- getbb("Scotland") |> 
-  opq() |> 
-  add_osm_feature(key = "water",
-                  value = "lake") |> 
-  osmdata_sf()
-
-custom_bb <- matrix(data = c(-4.769896, -4.284596, 57.113170, 57.410834),
-                    nrow = 2, byrow = TRUE)
-colnames(custom_bb) <- c("min", "max")
-rownames(custom_bb) <- c("x", "y")
-
-water <- opq(bbox = custom_bb) |> 
-  add_osm_feature(key = "natural",
-                  value = "water") |> 
-  osmdata_sf()
-
-highways <- opq(bbox = edin_bb) |> 
-  add_osm_feature(key = "highway") |> 
-  osmdata_sf()
-
-monuments <- opq(bbox = edin_bb) |> 
-  add_osm_feature(key = "historic") |> 
-  osmdata_sf()
-
-
-# Create map ----
-
-ggplot() +
-  geom_sf(data = water$osm_multipolygons)
-
-+
-  geom_sf(data = highways$osm_lines)
-
-  geom_sf(data = buildings$osm_polygons,
-          colour = "#a69cac", fill = "#161b33") +
-  geom_sf(data = highways$osm_lines,
-          colour = "#a69cac") +
+p0 <- ggplot() +
+  geom_sf(data = coast$osm_lines, col = "#2f387b", size = 0.25) +
+  # geom_sf(data = three_lochs$centroid, col = "#7991bd", size = 2) +
+  geom_sf_text(data = three_lochs$centroid,
+               aes(label = three_lochs$loch_nb),
+               family = "comfortaa", colour = "#7991bd", size = 15) +
   theme_void() +
-  theme(panel.background = element_rect(fill = "#161b33", colour = "#161b33"),
-        plot.background = element_rect(fill = "#161b33", colour = "#161b33"))
+  theme(
+    panel.background = element_rect(fill = "#0c023e", colour = "#0c023e"),
+    plot.background = element_rect(fill = "#0c023e", colour = "#0c023e"))
+  
 
-p <- ggplot() +
-  geom_sf(data = reservoir$osm_polygons,
-          fill = "#08b3e5", colour = "#08b3e5") +
-  labs(title = "Fresno-Clovis Water Treatment Plant",
-       caption = "#30DayMapChallenge 2022 | 03 - polygons | J.Kitt | Source : OpenStreetMap") +
-  theme_void() +
-  theme(panel.background = element_rect(fill = "#22e4ac", colour = "#22e4ac"),
-        plot.background = element_rect(fill = "#22e4ac", colour = "#22e4ac"),
-        plot.title = element_text(family = "Nova Square", colour = "#223f85",
-                                  size = 100, hjust = 0.5, margin = margin(t = 25, b = 5)),
-        plot.caption = element_text(colour = "#223f85", size = 25, hjust = 0.5,
-                                    margin = margin(b = 10)))
+padding <- 0.2
+
+graph <- function(x){
+  ggplot2::ggplot(ten_lochs[x,]) +
+    geom_sf(fill = "#7991bd", colour = "#7991bd") +
+    labs(title = paste0(ten_lochs[x, ]$loch_nb, " - ", ten_lochs[x, ]$name),
+         subtitle = paste0(ten_lochs[x, ]$max_depth_m, "m")) +
+    coord_sf(xlim = c(ten_lochs$centroid[[x]][1]-padding , 
+                      ten_lochs$centroid[[x]][1]+padding), 
+             ylim = c(ten_lochs$centroid[[x]][2]-padding , 
+                      ten_lochs$centroid[[x]][2]+padding), 
+             expand = FALSE) +
+    theme_void() +
+    theme(
+      panel.background = element_rect(fill = "#0c023e", colour = "#0c023e"),
+      plot.background = element_rect(fill = "#0c023e", colour = "#0c023e"),
+      plot.title = element_text(family = "comfortaa", colour = "#7991bd",
+                                size = 35, hjust = 0.5,
+                                margin = margin(t = 20, b = 5)),
+      plot.subtitle = element_text(family = "comfortaa", colour = "#7991bd",
+                                size = 35, hjust = 0.5,
+                                margin = margin(b = 5)))
+}
+
+plot_list <- lapply(X = 1:nrow(ten_lochs), FUN = graph)
+
+p <- (p0 + plot_list[[1]] + plot_list[[2]] + plot_list[[3]]) +
+  plot_layout(nrow = 1) +
+  plot_annotation(title = "Deepest lochs in Scotland",
+                  caption = "#30DayMapChallenge 2022 | 18 - blue | J.Kitt | Source : OpenStreetMap",
+                  theme = 
+                    theme(
+                      panel.background = element_rect(fill = "#0c023e", colour = "#0c023e"),
+                      plot.background = element_rect(fill = "#0c023e", colour = "#0c023e"),
+                      plot.title = element_text(family = "comfortaa", colour = "#7991bd",
+                                                size = 75, hjust = 0.5,
+                                                margin = margin(t = 20, b = 5)),
+                      plot.caption = element_text(family = "comfortaa", colour = "#7991bd",
+                                                  size = 25, hjust = 0.5)))
 
 # Export map ----
 
-ggsave("2022/maps/03_polygons.png", p, dpi = 320, height = 6, width = 12)
+ggsave("2022/maps/18_blue.png", p, dpi = 320, height = 6, width = 12)
